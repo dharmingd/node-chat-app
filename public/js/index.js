@@ -1,3 +1,17 @@
+function scrollToBottom(){
+    var messages = $('#messages');
+    var newMessage = messages.children('li:last-child');
+    //Heights
+    var clientHeight = messages.prop('clientHeight');
+    var scrollTop = messages.prop('scrollTop');
+    var scrollHeight = messages.prop('scrollHeight');
+    var newMessageHeight = newMessage.innerHeight();
+    var lastMessageHeight = newMessage.prev().innerHeight();
+    if(clientHeight + scrollTop + scrollHeight + newMessageHeight + lastMessageHeight>=scrollHeight){
+        messages.scrollTop(scrollHeight);
+    }
+}
+
 var socket = io();
 socket.on('connect', ()=>{
     console.log("Connected to server");
@@ -8,22 +22,39 @@ socket.on('disconnect', ()=>{
 })
 
 socket.on('newMessage', (message)=>{
-    console.log(message);
+    //console.log(message);
     var formattedTime = moment(message.createdAt).format('h:mm a');
     var li = $('<li></li>');
-    li.text(`${message.from} ${formattedTime} : ${message.text}`);
+    var span1 = $('<span class="username"></span>');
+    span1.text(message.from + " ");
+    var span2 = $('<span class="time"></span>');
+    span2.text(formattedTime + " : ");
+    var span3 = $('<span class="textMsg"></span>');
+    span3.text(message.text);
+    li.append(span1);
+    li.append(span2);
+    li.append(span3);
     $('#messages').append(li);
+    scrollToBottom();
 })
 
 
 socket.on("newLocationMessage", (message)=>{
     var formattedTime = moment(message.createdAt).format('h:mm a');
     var li = $('<li></li>');
+    var span1 = $('<span class="username"></span>');
+    span1.text(message.from + " ");
+    var span2 = $('<span class="time"></span>');
+    span2.text(formattedTime + " : ");
+    var span3 = $('<span class="textMsg"></span>');
     var a = $("<a target='_blank'>My current location</a>");
-    li.text(`${message.from} ${formattedTime} : `);
     a.attr('href', message.url);
-    li.append(a);
+    span3.append(a);
+    li.append(span1);
+    li.append(span2);
+    li.append(span3);
     $('#messages').append(li);
+    scrollToBottom()
 })
 
 $('#message-form').on('submit', function(e){
@@ -33,7 +64,7 @@ $('#message-form').on('submit', function(e){
         text: $('#messageText').val()
     }, function(){
         $('#messageText').val('');
-        console.log("Data Received");
+        //console.log("Data Received");
     })
 })
 
