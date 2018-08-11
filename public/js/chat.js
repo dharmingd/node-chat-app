@@ -15,14 +15,28 @@ function scrollToBottom(){
 var socket = io();
 socket.on('connect', ()=>{
     console.log("Connected to server");
+    var params = jQuery.deparam(window.location.search);
 
+    socket.emit('join', params, function (err) {
+        if (err) {
+            alert(err);
+            window.location.href = '/';
+        }
+    });
 })
 socket.on('disconnect', ()=>{
     console.log("Disconnected from server");
 })
 
+socket.on('updateUserList', function(userList){
+   var ol = $('<ol></ol>');
+   userList.forEach(function(user){
+      ol.append($('<li></li>').text(user));
+   });
+   $('#users').html(ol);
+});
+
 socket.on('newMessage', (message)=>{
-    //console.log(message);
     var formattedTime = moment(message.createdAt).format('h:mm a');
     var li = $('<li></li>');
     var span1 = $('<span class="username"></span>');
@@ -60,7 +74,6 @@ socket.on("newLocationMessage", (message)=>{
 $('#message-form').on('submit', function(e){
     e.preventDefault();
     socket.emit('createMessage', {
-        from: 'Dharmin',
         text: $('#messageText').val()
     }, function(){
         $('#messageText').val('');
